@@ -48,4 +48,9 @@ public class UserEntity implements Serializable {
 	 */
 	private Date createTime;
 
+	/**
+	 * openId
+	 */
+	private String openId;
+
 }

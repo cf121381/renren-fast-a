@@ -6,9 +6,9 @@ server:
       max: 1000
       min-spare: 30
     connection-timeout: 5000ms
-  port: 8080
+  port: 12888
   servlet:
-    context-path: /renren-fast
+    context-path: /api
 
 spring:
   # 环境 dev|test|prod
@@ -77,3 +77,7 @@ renren:
     # token有效时长，7天，单位秒
     expire: 604800
     header: token
+#微信配置
+mp:
+  secret: 63dbf2906ceab74a196083a58d93abcc
+  appId: wxc3674368673882a5

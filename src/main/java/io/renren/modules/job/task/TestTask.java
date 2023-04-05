@@ -19,7 +19,7 @@ import org.springframework.stereotype.Component;
  *
  * @author Mark sunlightcs@gmail.com
  */
-@Component("testTask")
+//@Component("testTask")
 public class TestTask implements ITask {
 	private Logger logger = LoggerFactory.getLogger(getClass());
 

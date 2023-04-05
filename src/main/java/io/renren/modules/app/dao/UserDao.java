@@ -10,6 +10,7 @@ package io.renren.modules.app.dao;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import io.renren.modules.app.entity.UserEntity;
+import io.renren.modules.sys.entity.SysUserEntity;
 import org.apache.ibatis.annotations.Mapper;
 
 /**
@@ -19,5 +20,13 @@ import org.apache.ibatis.annotations.Mapper;
  */
 @Mapper
 public interface UserDao extends BaseMapper<UserEntity> {
+
+
+	/**
+	 * 根据OpenId查询用户
+	 * @param openId 微信小程序OpenId
+	 * @return
+	 */
+	UserEntity queryByOpenId(String openId);
 
 }
