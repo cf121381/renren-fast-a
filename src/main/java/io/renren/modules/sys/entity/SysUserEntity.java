@@ -57,9 +57,9 @@ public class SysUserEntity implements Serializable {
 	/**
 	 * 邮箱
 	 */
-	@NotBlank(message="邮箱不能为空", groups = {AddGroup.class, UpdateGroup.class})
-	@Email(message="邮箱格式不正确", groups = {AddGroup.class, UpdateGroup.class})
-	private String email;
+//	@NotBlank(message="邮箱不能为空", groups = {AddGroup.class, UpdateGroup.class})
+//	@Email(message="邮箱格式不正确", groups = {AddGroup.class, UpdateGroup.class})
+//	private String email;
 
 	/**
 	 * 手机号
@@ -86,10 +86,5 @@ public class SysUserEntity implements Serializable {
 	 * 创建时间
 	 */
 	private Date createTime;
-
-	/**
-	 * openId
-	 */
-	private String openId;
 
 }

@@ -8,11 +8,17 @@
 
 package io.renren.modules.sys.service.impl;
 
+import cn.hutool.core.collection.CollectionUtil;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.google.common.collect.Lists;
 import io.renren.common.utils.MapUtils;
 import io.renren.modules.sys.dao.SysUserRoleDao;
+import io.renren.modules.sys.entity.SysRoleEntity;
 import io.renren.modules.sys.entity.SysUserRoleEntity;
 import io.renren.modules.sys.service.SysUserRoleService;
+import org.apache.commons.lang.StringUtils;
+
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -49,6 +55,14 @@ public class SysUserRoleServiceImpl extends ServiceImpl<SysUserRoleDao, SysUserR
 	@Override
 	public List<Long> queryRoleIdList(Long userId) {
 		return baseMapper.queryRoleIdList(userId);
+	}
+
+	@Override
+	public List<SysUserRoleEntity> queryRoleIdList(List<Long> userIdList) {
+		if(CollectionUtil.isEmpty(userIdList)){
+			return Lists.newArrayList();
+		}
+		return this.list(new QueryWrapper<SysUserRoleEntity>().in("user_id",userIdList));
 	}
 
 	@Override
