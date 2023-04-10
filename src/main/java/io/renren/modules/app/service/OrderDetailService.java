@@ -17,6 +17,7 @@ import io.renren.modules.app.entity.OrderDetailEntity;
 import io.renren.modules.app.form.OrderQueryForm;
 
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.multipart.MultipartFile;
 
 /**
  * 用户
@@ -26,4 +27,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 public interface OrderDetailService extends IService<OrderDetailEntity> {
 
 	PageUtils queryPage(@RequestParam Map<String, Object> params);
+
+	String batchImport(MultipartFile file);
 }
