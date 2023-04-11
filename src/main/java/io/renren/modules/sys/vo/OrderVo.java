@@ -12,7 +12,11 @@ import lombok.Data;
 @Data
 public class OrderVo extends OrderDetailEntity {
 
+	private static final long serialVersionUID = 6577847430538340923L;
+
 	private String bookDateStr;
 
 	private String amountStr;
+
+	private String statusStr;
 }

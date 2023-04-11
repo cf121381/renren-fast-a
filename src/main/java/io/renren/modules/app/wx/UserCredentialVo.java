@@ -9,9 +9,11 @@ import com.google.common.collect.Lists;
  * @Author: ChuNingfan
  * @Date: 2021/9/29 9:50
  **/
-public class UserCredentialDto implements Serializable {
+public class UserCredentialVo implements Serializable {
 
 	private static final long serialVersionUID = 7116900186668594532L;
+
+    private Long userId;
 
 	private String unionId;
 
@@ -19,7 +21,20 @@ public class UserCredentialDto implements Serializable {
 
     private String sessionKey;
 
+    private String token;
+
+    private String phone;
+
     private List<Long> roleIdList = Lists.newArrayList();
+
+
+    public Long getUserId() {
+        return userId;
+    }
+
+    public void setUserId(Long userId) {
+        this.userId = userId;
+    }
 
     public String getUnionId() {
         return unionId;
@@ -43,6 +58,22 @@ public class UserCredentialDto implements Serializable {
 
     public void setSessionKey(String sessionKey) {
         this.sessionKey = sessionKey;
+    }
+
+    public String getToken() {
+        return token;
+    }
+
+    public void setToken(String token) {
+        this.token = token;
+    }
+
+    public String getPhone() {
+        return phone;
+    }
+
+    public void setPhone(String phone) {
+        this.phone = phone;
     }
 
     public List<Long> getRoleIdList() {

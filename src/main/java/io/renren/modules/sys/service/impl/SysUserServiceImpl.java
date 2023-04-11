@@ -116,6 +116,11 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserDao, SysUserEntity> i
 	}
 
 	@Override
+	public SysUserEntity queryByMobile(String phone) {
+		return baseMapper.queryByMobile(phone);
+	}
+
+	@Override
 	@Transactional
 	public void saveUser(SysUserEntity user) {
 		user.setCreateTime(new Date());

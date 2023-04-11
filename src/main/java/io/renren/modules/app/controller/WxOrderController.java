@@ -6,15 +6,11 @@ import javax.annotation.Resource;
 
 import io.renren.common.utils.PageUtils;
 import io.renren.common.utils.R;
-import io.renren.modules.app.form.OrderQueryForm;
 import io.renren.modules.app.service.OrderDetailService;
-import io.renren.modules.app.wx.MiniprogramHelper;
-import io.renren.modules.app.wx.UserCredentialDto;
-import io.renren.modules.app.wx.WechatIntegrationException;
+import io.renren.modules.sys.vo.OrderVo;
 import io.swagger.annotations.Api;
 
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -35,8 +31,14 @@ public class WxOrderController {
 
 
 	@GetMapping("/list")
-	public R getWechatCredential(@RequestParam Map<String, Object> params) {
+	public R orderList(@RequestParam Map<String, Object> params) {
 		PageUtils page = orderDetailService.queryPage(params);
 		return R.ok().put("page", page);
+	}
+
+	@GetMapping("/detail")
+	public R orderDetail(@RequestParam("orderId")Long orderId , @RequestParam("openId")String openId){
+		OrderVo orderVo = orderDetailService.orderDetail(openId,orderId);
+		return R.ok().put("data",orderVo);
 	}
 }

@@ -41,6 +41,8 @@ public interface SysUserService extends IService<SysUserEntity> {
 	 */
 	SysUserEntity queryByUserName(String username);
 
+	SysUserEntity queryByMobile(String phone);
+
 	/**
 	 * 保存用户
 	 */

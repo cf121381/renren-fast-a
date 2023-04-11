@@ -21,4 +21,8 @@
 		select * from sys_user where username = #{username}
 	</select>
 
+	<select id="queryByMobile" resultType="io.renren.modules.sys.entity.SysUserEntity">
+		select * from sys_user where mobile = #{phone}
+	</select>
+
 </mapper>

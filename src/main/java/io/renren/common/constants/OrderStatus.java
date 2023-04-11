@@ -1,5 +1,7 @@
 package io.renren.common.constants;
 
+import io.renren.common.exception.RRException;
+
 /**
  *
  * @author changbindong
@@ -25,6 +27,15 @@ public enum OrderStatus {
 
 	public String getName() {
 		return name;
+	}
+
+	public static OrderStatus of(Integer status){
+		for (OrderStatus orderStatus : OrderStatus.values()){
+			if(orderStatus.getValue().equals(status)){
+				return orderStatus;
+			}
+		}
+		throw new RRException("未知的订单状态");
 	}
 
 	public static OrderStatus parseByName(String name){
