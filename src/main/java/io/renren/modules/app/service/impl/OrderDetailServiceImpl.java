@@ -90,10 +90,12 @@ public class OrderDetailServiceImpl extends ServiceImpl<OrderDetailDao, OrderDet
 						.like(StringUtils.isNotBlank(orderNo), "order_no", orderNo)
 						.eq(status != null && status > 0, "status", status)
 						//客户管理员
-						.eq(roleList.contains(1L), "customer_manager_phone", phone)
-						.eq(roleList.contains(2L), "agent_phone", phone)
-						.eq(roleList.contains(3L), "book_user_phone", phone)
-
+						.and(roleList.size() > 0,
+								qw -> qw.eq(roleList.contains(1L), "customer_manager_phone", phone)
+										.or()
+										.eq(roleList.contains(2L), "agent_phone", phone)
+										.or()
+										.eq(roleList.contains(3L), "book_user_phone", phone))
 		);
 
 		List<OrderVo> orderVoList = JSON.parseArray(JSONUtil.toJsonStr(page.getRecords()), OrderVo.class);
