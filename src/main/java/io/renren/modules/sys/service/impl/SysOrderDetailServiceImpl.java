@@ -10,24 +10,20 @@ package io.renren.modules.sys.service.impl;
 
 
 import java.io.IOException;
-import java.text.SimpleDateFormat;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-import cn.hutool.json.JSONUtil;
 import com.alibaba.excel.EasyExcel;
-import com.alibaba.fastjson.JSON;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
-import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.google.common.collect.Lists;
-import io.renren.common.constants.OrderStatus;
 import io.renren.common.exception.RRException;
 import io.renren.common.utils.AssertUtils;
+import io.renren.common.utils.OrderUtils;
 import io.renren.common.utils.PageUtils;
 import io.renren.common.utils.Query;
 import io.renren.modules.app.dao.OrderDetailDao;
@@ -35,7 +31,6 @@ import io.renren.modules.app.entity.OrderDetailEntity;
 import io.renren.modules.sys.listener.OrderImportListener;
 import io.renren.modules.sys.service.SysOrderDetailService;
 import io.renren.modules.sys.vo.OrderImportVo;
-import io.renren.modules.sys.vo.OrderVo;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
@@ -49,7 +44,6 @@ import org.springframework.web.multipart.MultipartFile;
 @Slf4j
 @Service("sysOrderDetailService")
 public class SysOrderDetailServiceImpl extends ServiceImpl<OrderDetailDao, OrderDetailEntity> implements SysOrderDetailService {
-	private static final SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
 
 	@Override
 	public PageUtils queryPage(Map<String, Object> params) {
@@ -71,19 +65,7 @@ public class SysOrderDetailServiceImpl extends ServiceImpl<OrderDetailDao, Order
 
 		);
 
-		List<OrderVo> orderVoList = JSON.parseArray(JSONUtil.toJsonStr(page.getRecords()), OrderVo.class);
-		Page<OrderVo> voIPage = new Page<>(page.getCurrent(), page.getSize(), page.getTotal());
-		voIPage.setRecords(orderVoList);
-		orderVoList.forEach(orderVo -> {
-			orderVo.setStatusStr(OrderStatus.of(orderVo.getStatus()).getName());
-			if (Objects.nonNull(orderVo.getBookTime())) {
-				orderVo.setBookDateStr(formatter.format(orderVo.getBookTime()));
-			}
-			if (Objects.nonNull(orderVo.getAmount())) {
-				orderVo.setAmountStr(String.valueOf(orderVo.getAmount() / 100D));
-			}
-		});
-		return new PageUtils(voIPage);
+		return OrderUtils.adapt2VoPage(page);
 	}
 
 	@Transactional(rollbackFor = Throwable.class)
@@ -116,7 +98,6 @@ public class SysOrderDetailServiceImpl extends ServiceImpl<OrderDetailDao, Order
 			List<OrderDetailEntity> updateOrderList = this.list(new QueryWrapper<OrderDetailEntity>()
 					.in("order_no", orderNos));
 			Map<String, OrderDetailEntity> noEntityMap = updateOrderList.stream().collect(Collectors.toMap(OrderDetailEntity::getOrderNo, Function.identity()));
-			Map<String, OrderImportVo> newInfoMap = needUpdateList.stream().collect(Collectors.toMap(OrderImportVo::getOrderNo, Function.identity()));
 			needUpdateList.forEach(vo -> {
 				OrderDetailEntity entity = noEntityMap.get(vo.getOrderNo());
 				BeanUtils.copyProperties(vo, entity);

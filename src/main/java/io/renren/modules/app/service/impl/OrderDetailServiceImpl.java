@@ -9,13 +9,14 @@
 package io.renren.modules.app.service.impl;
 
 
-import java.text.SimpleDateFormat;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 import javax.annotation.Resource;
 
+import cn.hutool.core.util.NumberUtil;
 import cn.hutool.json.JSONUtil;
 import com.alibaba.fastjson.JSON;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
@@ -25,6 +26,8 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.google.common.collect.Lists;
 import io.renren.common.constants.OrderStatus;
 import io.renren.common.exception.RRException;
+import io.renren.common.utils.DateUtils;
+import io.renren.common.utils.OrderUtils;
 import io.renren.common.utils.PageUtils;
 import io.renren.common.utils.Query;
 import io.renren.modules.app.dao.OrderDetailDao;
@@ -46,7 +49,6 @@ import org.springframework.stereotype.Service;
 @Slf4j
 @Service("orderDetailService")
 public class OrderDetailServiceImpl extends ServiceImpl<OrderDetailDao, OrderDetailEntity> implements OrderDetailService {
-	private static final SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
 
 	@Resource
 	private UserService userService;
@@ -97,20 +99,7 @@ public class OrderDetailServiceImpl extends ServiceImpl<OrderDetailDao, OrderDet
 										.or()
 										.eq(roleList.contains(3L), "book_user_phone", phone))
 		);
-
-		List<OrderVo> orderVoList = JSON.parseArray(JSONUtil.toJsonStr(page.getRecords()), OrderVo.class);
-		Page<OrderVo> voIPage = new Page<>(page.getCurrent(), page.getSize(), page.getTotal());
-		voIPage.setRecords(orderVoList);
-		orderVoList.forEach(orderVo -> {
-			orderVo.setStatusStr(OrderStatus.of(orderVo.getStatus()).getName());
-			if (Objects.nonNull(orderVo.getBookTime())) {
-				orderVo.setBookDateStr(formatter.format(orderVo.getBookTime()));
-			}
-			if (Objects.nonNull(orderVo.getAmount())) {
-				orderVo.setAmountStr(String.valueOf(orderVo.getAmount() / 100D));
-			}
-		});
-		return new PageUtils(voIPage);
+		return OrderUtils.adapt2VoPage(page);
 	}
 
 	public OrderVo orderDetail(String openId, Long orderId) {
@@ -118,16 +107,7 @@ public class OrderDetailServiceImpl extends ServiceImpl<OrderDetailDao, OrderDet
 		if (Objects.isNull(user) || StringUtils.isBlank(user.getMobile())) {
 			return null;
 		}
-		OrderDetailEntity orderDetail = this.getById(orderId);
-		OrderVo orderVo = JSONUtil.toBean(JSONUtil.toJsonStr(orderDetail), OrderVo.class);
-		orderVo.setStatusStr(OrderStatus.of(orderVo.getStatus()).getName());
-		if (Objects.nonNull(orderVo.getBookTime())) {
-			orderVo.setBookDateStr(formatter.format(orderVo.getBookTime()));
-		}
-		if (Objects.nonNull(orderVo.getAmount())) {
-			orderVo.setAmountStr(String.valueOf(orderVo.getAmount() / 100D));
-		}
-		return orderVo;
+		return OrderUtils.adapt2Vo(this.getById(orderId));
 	}
 
 	private List<Long> getRoleIdListByPhone(String phone) {
