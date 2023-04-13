@@ -23,7 +23,7 @@
 
 	<select id="queryByMobileList" resultType="io.renren.modules.sys.entity.SysUserEntity">
 		select * from sys_user where mobile in
-		<foreach collection="phoneList" open="(" close=")" separator="," item="item">#{item}</foreach>
+		<foreach collection="list" open="(" close=")" separator="," item="item">#{item}</foreach>
 	</select>
 
 </mapper>

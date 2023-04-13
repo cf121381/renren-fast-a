@@ -169,7 +169,7 @@ public class SysOrderDetailServiceImpl extends ServiceImpl<OrderDetailDao, Order
 				phoneUserMap.get(key).setRoleIdList(value);
 			});
 			phoneUserMap.forEach((key, value) -> {
-				sysUserService.save(value);
+				sysUserService.update(value);
 			});
 		}
 	}
