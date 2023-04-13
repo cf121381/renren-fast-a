@@ -11,6 +11,7 @@ package io.renren.modules.sys.dao;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import io.renren.modules.sys.entity.SysUserEntity;
 import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Param;
 
 import java.util.List;
 
@@ -38,6 +39,6 @@ public interface SysUserDao extends BaseMapper<SysUserEntity> {
 	 */
 	SysUserEntity queryByUserName(String username);
 
-	List<SysUserEntity> queryByMobileList(List<String> phoneList);
+	List<SysUserEntity> queryByMobileList(@Param("phoneList") List<String> phoneList);
 
 }
