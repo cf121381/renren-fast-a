@@ -202,9 +202,7 @@ public class SysOrderDetailServiceImpl extends ServiceImpl<OrderDetailDao, Order
 			entity.setCreateUserId(operateUserId);
 			return entity;
 		}).collect(Collectors.toList());
-		addList.forEach(user -> {
-			sysUserService.saveUser(user);
-		});
+		addList.forEach(user -> sysUserService.saveUser(user));
 	}
 
 	private void saveOrderData(List<OrderImportVo> needUpdateList, List<OrderImportVo> needSaveList) {
