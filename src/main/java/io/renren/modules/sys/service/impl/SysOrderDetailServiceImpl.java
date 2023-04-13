@@ -144,30 +144,21 @@ public class SysOrderDetailServiceImpl extends ServiceImpl<OrderDetailDao, Order
 			Map<String, List<Long>> phoneRolesMap = userRoleList.stream().collect(Collectors.groupingBy(s -> userIdUserMap.get(s.getUserId()).getMobile(), Collectors.mapping(SysUserRoleEntity::getRoleId, Collectors.toList())));
 
 			//处理用户 存在的用户角色是否满足上传数据要求；角色不足的，补足角色。补足角色这块可能有点复杂
-			phoneRolesMap.forEach((key, value) -> {
+			phoneRolesMap.forEach((phone, roleIds) -> {
 				//1,客户管理员
 				//2,代理商
 				//3,客户
-				if (agents.containsKey(key)) {
-					phoneUserMap.get(key).setUsername(agents.get(key));
-					if (!value.contains(2L)) {
-						value.add(2L);
-					}
-
+				if (customerManagers.containsKey(phone) && !roleIds.contains(1L)) {
+					roleIds.add(1L);
 				}
-				if (customers.containsKey(key)) {
-					phoneUserMap.get(key).setUsername(customers.get(key));
-					if (!value.contains(3L)) {
-						value.add(3L);
-					}
+				if (agents.containsKey(phone) && !roleIds.contains(2L)) {
+					roleIds.add(2L);
 				}
-				if (customerManagers.containsKey(key)) {
-					phoneUserMap.get(key).setUsername(customerManagers.get(key));
-					if (!value.contains(1L)) {
-						value.add(1L);
-					}
+				if (customers.containsKey(phone) && !roleIds.contains(3L)) {
+					roleIds.add(3L);
 				}
-				phoneUserMap.get(key).setRoleIdList(value);
+				phoneUserMap.get(phone).setUsername(findName(agents, customers, customerManagers, phone));
+				phoneUserMap.get(phone).setRoleIdList(roleIds);
 			});
 			phoneUserMap.forEach((key, value) -> {
 				sysUserService.update(value);
@@ -197,12 +188,26 @@ public class SysOrderDetailServiceImpl extends ServiceImpl<OrderDetailDao, Order
 			SysUserEntity entity = new SysUserEntity();
 			entity.setMobile(entry.getKey());
 			entity.setPassword(RandomStringUtils.randomAlphanumeric(10));
-			entity.setUsername(entry.getKey());
+			entity.setUsername(findName(agents, customers, customerManagers, entry.getKey()));
 			entity.setRoleIdList(entry.getValue());
 			entity.setCreateUserId(operateUserId);
 			return entity;
 		}).collect(Collectors.toList());
 		addList.forEach(user -> sysUserService.saveUser(user));
+	}
+
+	private String findName(Map<String, String> agents, Map<String, String> customers, Map<String, String> customerManagers, String phone) {
+		String name = phone;
+		if (customers.containsKey(phone)) {
+			name = customers.get(phone);
+		}
+		if (agents.containsKey(phone)) {
+			name = agents.get(phone);
+		}
+		if (customerManagers.containsKey(phone)) {
+			name = customerManagers.get(phone);
+		}
+		return name;
 	}
 
 	private void saveOrderData(List<OrderImportVo> needUpdateList, List<OrderImportVo> needSaveList) {

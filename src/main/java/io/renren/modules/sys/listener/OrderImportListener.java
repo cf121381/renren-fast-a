@@ -6,11 +6,16 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import com.alibaba.excel.context.AnalysisContext;
 import com.alibaba.excel.event.AnalysisEventListener;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import io.renren.common.constants.OrderStatus;
+import io.renren.common.utils.SpringContextUtils;
+import io.renren.modules.app.entity.OrderDetailEntity;
+import io.renren.modules.sys.service.SysOrderDetailService;
 import io.renren.modules.sys.vo.OrderImportVo;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
@@ -57,7 +62,15 @@ public class OrderImportListener extends AnalysisEventListener<OrderImportVo> {
 	 * @param orderImportList
 	 */
 	private void bizCheck(List<OrderImportVo> orderImportList) {
-
+		if (CollectionUtils.isEmpty(orderImportList)) {
+			return;
+		}
+		SysOrderDetailService sysOrderDetailService = (SysOrderDetailService) SpringContextUtils.getBean("sysOrderDetailService");
+		List<OrderDetailEntity> orderDetailEntityList = sysOrderDetailService.list(new QueryWrapper<OrderDetailEntity>().in("order_no", orderImportList.stream().map(OrderImportVo::getOrderNo).distinct().collect(Collectors.toList())));
+		Map<String, OrderImportVo> orderNoVoMap = orderImportList.stream().collect(Collectors.toMap(OrderImportVo::getOrderNo, Function.identity()));
+		orderDetailEntityList.forEach(entity -> {
+			orderNoVoMap.get(entity.getOrderNo()).setUpdate(Boolean.TRUE);
+		});
 	}
 
 	private boolean baseCheck(List<OrderImportVo> orderList) {
