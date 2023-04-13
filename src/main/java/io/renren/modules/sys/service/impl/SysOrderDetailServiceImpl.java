@@ -16,6 +16,8 @@ import java.util.Objects;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import javax.annotation.Resource;
+
 import com.alibaba.excel.EasyExcel;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
@@ -28,12 +30,18 @@ import io.renren.common.utils.PageUtils;
 import io.renren.common.utils.Query;
 import io.renren.modules.app.dao.OrderDetailDao;
 import io.renren.modules.app.entity.OrderDetailEntity;
+import io.renren.modules.sys.entity.SysUserEntity;
+import io.renren.modules.sys.entity.SysUserRoleEntity;
 import io.renren.modules.sys.listener.OrderImportListener;
 import io.renren.modules.sys.service.SysOrderDetailService;
+import io.renren.modules.sys.service.SysUserRoleService;
+import io.renren.modules.sys.service.SysUserService;
 import io.renren.modules.sys.vo.OrderImportVo;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang.RandomStringUtils;
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.math3.util.Pair;
 
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
@@ -44,6 +52,12 @@ import org.springframework.web.multipart.MultipartFile;
 @Slf4j
 @Service("sysOrderDetailService")
 public class SysOrderDetailServiceImpl extends ServiceImpl<OrderDetailDao, OrderDetailEntity> implements SysOrderDetailService {
+
+	@Resource
+	private SysUserService sysUserService;
+
+	@Resource
+	private SysUserRoleService sysUserRoleService;
 
 	@Override
 	public PageUtils queryPage(Map<String, Object> params) {
@@ -93,6 +107,104 @@ public class SysOrderDetailServiceImpl extends ServiceImpl<OrderDetailDao, Order
 		List<OrderImportVo> needUpdateList = orderImportList.stream().filter(OrderImportVo::isUpdate).collect(Collectors.toList());
 		List<OrderImportVo> needSaveList = orderImportList.stream().filter(x -> !x.isUpdate()).collect(Collectors.toList());
 
+		//根据导入的内容，自动创建对应角色的用户
+		//代理商
+		Map<String, String> agents = orderImportList.stream()
+				.filter(o -> StringUtils.isNotBlank(o.getAgentPhone()))
+				.collect(Collectors.toMap(OrderImportVo::getAgentPhone, OrderImportVo::getAgent, (a, b) -> b));
+		//客户(下单人)
+		Map<String, String> customers = orderImportList.stream()
+				.filter(o -> StringUtils.isNotBlank(o.getBookUserPhone()))
+				.collect(Collectors.toMap(OrderImportVo::getBookUserPhone, OrderImportVo::getBookUser, (a, b) -> b));
+		//客户管理员
+		Map<String, String> customerManagers = orderImportList.stream()
+				.filter(o -> StringUtils.isNotBlank(o.getCustomerManagerPhone()))
+				.collect(Collectors.toMap(OrderImportVo::getCustomerManagerPhone, OrderImportVo::getCustomerManager, (a, b) -> b));
+
+		List<String> allPhone = orderImportList.stream()
+				.map(o -> Lists.newArrayList(o.getAgentPhone(), o.getBookUserPhone(), o.getCustomerManagerPhone()))
+				.flatMap(List::stream).distinct().collect(Collectors.toList());
+
+		List<SysUserEntity> allExistsUser = sysUserService.queryByMobileList(allPhone);
+
+		Map<String, SysUserEntity> phoneUserMap = allExistsUser.stream().collect(Collectors.toMap(SysUserEntity::getMobile, Function.identity()));
+		handleUpdateUser(agents, customers, customerManagers, allExistsUser, phoneUserMap);
+		//处理需要新建的用户
+		handleAddUsers(agents, customers, customerManagers, allPhone, phoneUserMap);
+		saveOrderData(needUpdateList, needSaveList);
+		return StringUtils.EMPTY;
+	}
+
+	private void handleUpdateUser(Map<String, String> agents, Map<String, String> customers, Map<String, String> customerManagers, List<SysUserEntity> allExistsUser, Map<String, SysUserEntity> phoneUserMap) {
+		if (CollectionUtils.isNotEmpty(allExistsUser)) {
+			//处理需要更新的
+			List<SysUserRoleEntity> userRoleList = sysUserRoleService.queryRoleIdList(allExistsUser.stream().map(SysUserEntity::getUserId).distinct().collect(Collectors.toList()));
+			Map<Long, SysUserEntity> userIdUserMap = allExistsUser.stream().collect(Collectors.toMap(SysUserEntity::getUserId, Function.identity()));
+			Map<String, List<Long>> phoneRolesMap = userRoleList.stream().collect(Collectors.groupingBy(s -> userIdUserMap.get(s.getUserId()).getMobile(), Collectors.mapping(SysUserRoleEntity::getRoleId, Collectors.toList())));
+
+			//处理用户 存在的用户角色是否满足上传数据要求；角色不足的，补足角色。补足角色这块可能有点复杂
+			phoneRolesMap.forEach((key, value) -> {
+				//1,客户管理员
+				//2,代理商
+				//3,客户
+				if (agents.containsKey(key)) {
+					phoneUserMap.get(key).setUsername(agents.get(key));
+					if (!value.contains(2L)) {
+						value.add(2L);
+					}
+
+				}
+				if (customers.containsKey(key)) {
+					phoneUserMap.get(key).setUsername(customers.get(key));
+					if (!value.contains(3L)) {
+						value.add(3L);
+					}
+				}
+				if (customerManagers.containsKey(key)) {
+					phoneUserMap.get(key).setUsername(customerManagers.get(key));
+					if (!value.contains(1L)) {
+						value.add(1L);
+					}
+				}
+				phoneUserMap.get(key).setRoleIdList(value);
+			});
+			phoneUserMap.forEach((key, value) -> {
+				sysUserService.save(value);
+			});
+		}
+	}
+
+	private void handleAddUsers(Map<String, String> agents, Map<String, String> customers, Map<String, String> customerManagers, List<String> allPhone, Map<String, SysUserEntity> phoneUserMap) {
+		Map<String, List<Long>> phoneRolesMap = allPhone.stream().filter(p -> !phoneUserMap.containsKey(p)).map(phone -> {
+			List<Long> roleIdList = Lists.newArrayList();
+			//1,客户管理员
+			//2,代理商
+			//3,客户
+			if (agents.containsKey(phone)) {
+				roleIdList.add(2L);
+			}
+			if (customers.containsKey(phone)) {
+				roleIdList.add(3L);
+			}
+			if (customerManagers.containsKey(phone)) {
+				roleIdList.add(1L);
+			}
+			return new Pair<>(phone, roleIdList);
+		}).collect(Collectors.toMap(Pair::getKey, Pair::getValue));
+		List<SysUserEntity> addList = phoneRolesMap.entrySet().stream().map(entry -> {
+			SysUserEntity entity = new SysUserEntity();
+			entity.setMobile(entry.getKey());
+			entity.setPassword(RandomStringUtils.randomAlphanumeric(10));
+			entity.setUsername(entry.getKey());
+			entity.setRoleIdList(entry.getValue());
+			return entity;
+		}).collect(Collectors.toList());
+		addList.forEach(user -> {
+			sysUserService.saveUser(user);
+		});
+	}
+
+	private void saveOrderData(List<OrderImportVo> needUpdateList, List<OrderImportVo> needSaveList) {
 		if (CollectionUtils.isNotEmpty(needUpdateList)) {
 			List<String> orderNos = needUpdateList.stream().map(OrderImportVo::getOrderNo).distinct().collect(Collectors.toList());
 			List<OrderDetailEntity> updateOrderList = this.list(new QueryWrapper<OrderDetailEntity>()
@@ -118,6 +230,5 @@ public class SysOrderDetailServiceImpl extends ServiceImpl<OrderDetailDao, Order
 			}).collect(Collectors.toList());
 			this.saveBatch(saveOrderList);
 		}
-		return StringUtils.EMPTY;
 	}
 }

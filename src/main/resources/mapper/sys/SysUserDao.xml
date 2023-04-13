@@ -21,8 +21,9 @@
 		select * from sys_user where username = #{username}
 	</select>
 
-	<select id="queryByMobile" resultType="io.renren.modules.sys.entity.SysUserEntity">
-		select * from sys_user where mobile = #{phone}
+	<select id="queryByMobileList" resultType="io.renren.modules.sys.entity.SysUserEntity">
+		select * from sys_user where mobile in
+		<foreach collection="phoneList" open="(" close=")" separator="," item="item">#{item}</foreach>
 	</select>
 
 </mapper>

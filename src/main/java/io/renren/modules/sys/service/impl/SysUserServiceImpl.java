@@ -22,6 +22,7 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.google.common.collect.Lists;
 import io.renren.common.exception.RRException;
 import io.renren.common.utils.Constant;
 import io.renren.common.utils.PageUtils;
@@ -117,7 +118,19 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserDao, SysUserEntity> i
 
 	@Override
 	public SysUserEntity queryByMobile(String phone) {
-		return baseMapper.queryByMobile(phone);
+		List<SysUserEntity> entityList = baseMapper.queryByMobileList(Lists.newArrayList(phone));
+		if (CollectionUtil.isEmpty(entityList)) {
+			return null;
+		}
+		return entityList.get(0);
+	}
+
+	@Override
+	public List<SysUserEntity> queryByMobileList(List<String> phoneList) {
+		if (CollectionUtil.isEmpty(phoneList)) {
+			return Lists.newArrayList();
+		}
+		return baseMapper.queryByMobileList(phoneList);
 	}
 
 	@Override
