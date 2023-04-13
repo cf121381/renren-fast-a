@@ -42,6 +42,7 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang.RandomStringUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.math3.util.Pair;
+import org.apache.shiro.SecurityUtils;
 
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
@@ -191,12 +192,14 @@ public class SysOrderDetailServiceImpl extends ServiceImpl<OrderDetailDao, Order
 			}
 			return new Pair<>(phone, roleIdList);
 		}).collect(Collectors.toMap(Pair::getKey, Pair::getValue));
+		Long operateUserId = ((SysUserEntity) SecurityUtils.getSubject().getPrincipal()).getUserId();
 		List<SysUserEntity> addList = phoneRolesMap.entrySet().stream().map(entry -> {
 			SysUserEntity entity = new SysUserEntity();
 			entity.setMobile(entry.getKey());
 			entity.setPassword(RandomStringUtils.randomAlphanumeric(10));
 			entity.setUsername(entry.getKey());
 			entity.setRoleIdList(entry.getValue());
+			entity.setCreateUserId(operateUserId);
 			return entity;
 		}).collect(Collectors.toList());
 		addList.forEach(user -> {
