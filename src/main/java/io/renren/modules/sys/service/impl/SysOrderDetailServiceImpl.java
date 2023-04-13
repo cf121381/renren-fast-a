@@ -10,6 +10,7 @@ package io.renren.modules.sys.service.impl;
 
 
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -222,7 +223,7 @@ public class SysOrderDetailServiceImpl extends ServiceImpl<OrderDetailDao, Order
 				entity.setBookTime(vo.getBookTime());
 				entity.setStatus(vo.getOrderStatus().getValue());
 				if (StringUtils.isNotBlank(vo.getAmount())) {
-					entity.setAmount((int) (Double.parseDouble(vo.getAmount()) * 100));
+					entity.setAmount(new BigDecimal(vo.getAmount()));
 				}
 			});
 			this.updateBatchById(updateOrderList);
@@ -232,6 +233,9 @@ public class SysOrderDetailServiceImpl extends ServiceImpl<OrderDetailDao, Order
 				OrderDetailEntity entity = new OrderDetailEntity();
 				BeanUtils.copyProperties(vo, entity);
 				entity.setStatus(vo.getOrderStatus().getValue());
+				if (StringUtils.isNotBlank(vo.getAmount())) {
+					entity.setAmount(new BigDecimal(vo.getAmount()));
+				}
 				return entity;
 			}).collect(Collectors.toList());
 			this.saveBatch(saveOrderList);

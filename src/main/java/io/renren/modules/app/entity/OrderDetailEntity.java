@@ -9,6 +9,7 @@
 package io.renren.modules.app.entity;
 
 import java.io.Serializable;
+import java.math.BigDecimal;
 import java.util.Date;
 
 import com.baomidou.mybatisplus.annotation.TableId;
@@ -51,7 +52,7 @@ public class OrderDetailEntity implements Serializable {
 	/**
 	 * 金额 （实际金额*100，展示需要处理）
 	 */
-	private Integer amount;
+	private BigDecimal amount;
 
 	/**
 	 * 下单人名称

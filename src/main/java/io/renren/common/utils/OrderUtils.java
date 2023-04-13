@@ -31,7 +31,7 @@ public class OrderUtils {
 			orderVo.setBookDateStr(DateUtils.format(orderVo.getBookTime()));
 		}
 		if (Objects.nonNull(orderVo.getAmount())) {
-			orderVo.setAmountStr(String.valueOf(orderVo.getAmount() / 100D));
+			orderVo.setAmountStr(orderVo.getAmount().toString());
 		}
 		return orderVo;
 	}
