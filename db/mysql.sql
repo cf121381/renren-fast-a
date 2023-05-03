@@ -270,3 +270,6 @@ CREATE TABLE `order_detail`
 ) ENGINE = InnoDB
   AUTO_INCREMENT = 1
   DEFAULT CHARSET = utf8mb4 COMMENT ='订单详情';
+
+alter table sys_log
+    add from_type int default 0 not null comment '操作来源 0后台 1小程序' after ip;

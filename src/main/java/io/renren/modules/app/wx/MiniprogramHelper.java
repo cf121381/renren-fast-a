@@ -154,6 +154,22 @@ public class MiniprogramHelper {
 		return vo;
 	}
 
+	public UserVo getUserInfo(String openId){
+		if(StringUtils.isEmpty(openId)){
+			throw new RRException("用户未登录，请先登录");
+		}
+		UserEntity user = userService.queryByOpenId(openId);
+		if(Objects.isNull(user)){
+			throw new RRException("用户未登录，请先登录");
+		}
+		UserVo vo = new UserVo();
+		vo.setUserId(user.getUserId());
+		vo.setPhone(user.getMobile());
+		vo.setOpenId(openId);
+		vo.setRoleIdList(getRoleIdListByPhone(user.getMobile()));
+		return vo;
+	}
+
 	public String sendMsg(String openId, String token, String phone) {
 		String code = generateCode(6);
 		phoneCodeMap.put(phone + openId + token, code);

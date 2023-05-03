@@ -46,8 +46,8 @@ spring:
     type: com.alibaba.druid.pool.DruidDataSource
     druid:
       driver-class-name: com.mysql.cj.jdbc.Driver
-#      url: jdbc:mysql://81.70.243.148:9806/jj_order?useUnicode=true&characterEncoding=UTF-8&serverTimezone=Asia/Shanghai
-      url: jdbc:mysql://localhost:9806/jj_order?useUnicode=true&characterEncoding=UTF-8&serverTimezone=Asia/Shanghai
+      url: jdbc:mysql://81.70.243.148:9806/jj_order?useUnicode=true&characterEncoding=UTF-8&serverTimezone=Asia/Shanghai
+#      url: jdbc:mysql://localhost:9806/jj_order?useUnicode=true&characterEncoding=UTF-8&serverTimezone=Asia/Shanghai
       username: jj_order
       password: o!z34567Bg
       initial-size: 10

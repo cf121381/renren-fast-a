@@ -8,28 +8,32 @@
 
 package io.renren.common.aspect;
 
+import java.lang.reflect.Method;
+import java.util.Date;
+
+import javax.annotation.Resource;
+import javax.servlet.http.HttpServletRequest;
+
+import cn.hutool.json.JSONUtil;
 import com.google.gson.Gson;
 import io.renren.common.annotation.SysLog;
+import io.renren.common.annotation.WxSysLog;
 import io.renren.common.constants.LogFromType;
 import io.renren.common.utils.HttpContextUtils;
 import io.renren.common.utils.IPUtils;
+import io.renren.modules.app.wx.MiniprogramHelper;
+import io.renren.modules.app.wx.UserVo;
 import io.renren.modules.sys.entity.SysLogEntity;
-import io.renren.modules.sys.entity.SysUserEntity;
 import io.renren.modules.sys.service.SysLogService;
-import org.apache.shiro.SecurityUtils;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.annotation.Pointcut;
 import org.aspectj.lang.reflect.MethodSignature;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-
-import javax.servlet.http.HttpServletRequest;
-
-import java.lang.reflect.Method;
-import java.util.Date;
 
 
 /**
@@ -39,11 +43,17 @@ import java.util.Date;
  */
 @Aspect
 @Component
-public class SysLogAspect {
-	@Autowired
+public class WxSysLogAspect {
+
+	private Logger logger = LoggerFactory.getLogger(getClass());
+
+	@Resource
 	private SysLogService sysLogService;
 
-	@Pointcut("@annotation(io.renren.common.annotation.SysLog)")
+	@Resource
+	private MiniprogramHelper miniprogramHelper;
+
+	@Pointcut("@annotation(io.renren.common.annotation.WxSysLog)")
 	public void logPointCut() {
 
 	}
@@ -67,12 +77,12 @@ public class SysLogAspect {
 		Method method = signature.getMethod();
 
 		SysLogEntity sysLog = new SysLogEntity();
-		SysLog annotationEntity = method.getAnnotation(SysLog.class);
-		if (annotationEntity != null) {
+		WxSysLog wxSysLog = method.getAnnotation(WxSysLog.class);
+		if (wxSysLog != null) {
 			//注解上的描述
-			sysLog.setOperation(annotationEntity.value());
+			sysLog.setOperation(wxSysLog.value());
 		}
-		sysLog.setFromType(LogFromType.ADMIN);
+		sysLog.setFromType(LogFromType.WX);
 
 		//请求的方法名
 		String className = joinPoint.getTarget().getClass().getName();
@@ -94,9 +104,13 @@ public class SysLogAspect {
 		//设置IP地址
 		sysLog.setIp(IPUtils.getIpAddr(request));
 
+		String openId = request.getParameter("openId");
+		logger.info("openId:{}", openId);
+		UserVo userVo = miniprogramHelper.getUserInfo(openId);
+		logger.info("user vo:{}", JSONUtil.toJsonStr(userVo));
+
 		//用户名
-		String username = ((SysUserEntity) SecurityUtils.getSubject().getPrincipal()).getUsername();
-		sysLog.setUsername(username);
+		sysLog.setUsername(userVo.getPhone());
 
 		sysLog.setTime(time);
 		sysLog.setCreateDate(new Date());

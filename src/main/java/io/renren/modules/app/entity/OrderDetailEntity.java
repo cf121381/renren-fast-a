@@ -55,32 +55,32 @@ public class OrderDetailEntity implements Serializable {
 	private BigDecimal amount;
 
 	/**
-	 * 下单人名称
+	 * 厂商销售名称
 	 */
 	private String bookUser;
 
 	/**
-	 * 下单人手机号
+	 * 厂商销售手机号
 	 */
 	private String bookUserPhone;
 
 	/**
-	 * 客户管理员名称
+	 * 佳杰销售
 	 */
 	private String customerManager;
 
 	/**
-	 * 客户管理员电话
+	 * 佳杰销售电话
 	 */
 	private String customerManagerPhone;
 
 	/**
-	 * 代理商名称
+	 * 代理商销售
 	 */
 	private String agent;
 
 	/**
-	 * 代理商电话
+	 * 代理商销售电话
 	 */
 	private String agentPhone;
 

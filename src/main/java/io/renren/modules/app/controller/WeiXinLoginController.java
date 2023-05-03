@@ -3,6 +3,7 @@ package io.renren.modules.app.controller;
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 
+import io.renren.common.annotation.WxSysLog;
 import io.renren.common.utils.R;
 import io.renren.modules.app.form.SaveUserInfoForm;
 import io.renren.modules.app.utils.WebUtil;
@@ -61,6 +62,7 @@ public class WeiXinLoginController {
 		return R.ok().put("data", vo);
 	}
 
+	@WxSysLog("user_login_query")
 	@GetMapping("/get_user_info")
 	public R getUserInfo(@RequestParam("token")String token,@RequestParam("openId")String openId){
 		UserVo vo = miniprogramHelper.getUserInfo(openId,token);

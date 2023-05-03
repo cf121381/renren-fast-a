@@ -62,37 +62,37 @@ public class OrderImportVo implements Serializable {
 	/**
 	 * 下单人名称
 	 */
-	@ExcelProperty("下单人")
+	@ExcelProperty("厂商销售")
 	private String bookUser;
 
 	/**
 	 * 下单人手机号
 	 */
-	@ExcelProperty("下单人电话")
+	@ExcelProperty("厂商销售电话")
 	private String bookUserPhone;
 
 	/**
 	 * 客户管理员名称
 	 */
-	@ExcelProperty("对接人")
+	@ExcelProperty("佳杰销售")
 	private String customerManager;
 
 	/**
 	 * 客户管理员电话
 	 */
-	@ExcelProperty("对接人电话")
+	@ExcelProperty("佳杰销售电话")
 	private String customerManagerPhone;
 
 	/**
 	 * 代理商名称
 	 */
-	@ExcelProperty("代理商")
+	@ExcelProperty("代理商销售")
 	private String agent;
 
 	/**
 	 * 代理商电话
 	 */
-	@ExcelProperty("代理商电话")
+	@ExcelProperty("代理商销售电话")
 	private String agentPhone;
 
 	/**
