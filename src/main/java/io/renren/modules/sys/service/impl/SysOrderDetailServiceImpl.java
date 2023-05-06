@@ -256,7 +256,8 @@ public class SysOrderDetailServiceImpl extends ServiceImpl<OrderDetailDao, Order
 		StatisticsObject so = StatisticsObject.of(statisticsObject);
 		//查询指定日期内所有的单子
 		List<OrderDetailEntity> orderList = this.list(new QueryWrapper<OrderDetailEntity>()
-				.gt("book_time", DateUtil.getMonthStartTimeByDate(new Date()))
+				.ge("book_time", DateUtil.getMonthStartTimeByDate(new Date()))
+				.lt("book_time",DateUtil.getMonthEndTimeByDate(new Date()))
 		);
 		if (CollectionUtils.isEmpty(orderList)) {
 			return new StatisticsVo();
