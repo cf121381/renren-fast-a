@@ -11,6 +11,9 @@ package io.renren.modules.sys.service.impl;
 
 import java.io.IOException;
 import java.math.BigDecimal;
+import java.math.RoundingMode;
+import java.util.Comparator;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -24,6 +27,8 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
+import io.renren.common.constants.StatisticsObject;
 import io.renren.common.exception.RRException;
 import io.renren.common.utils.AssertUtils;
 import io.renren.common.utils.OrderUtils;
@@ -31,13 +36,16 @@ import io.renren.common.utils.PageUtils;
 import io.renren.common.utils.Query;
 import io.renren.modules.app.dao.OrderDetailDao;
 import io.renren.modules.app.entity.OrderDetailEntity;
+import io.renren.modules.app.utils.DateUtil;
 import io.renren.modules.sys.entity.SysUserEntity;
 import io.renren.modules.sys.entity.SysUserRoleEntity;
 import io.renren.modules.sys.listener.OrderImportListener;
 import io.renren.modules.sys.service.SysOrderDetailService;
 import io.renren.modules.sys.service.SysUserRoleService;
 import io.renren.modules.sys.service.SysUserService;
+import io.renren.modules.sys.vo.CountTempVo;
 import io.renren.modules.sys.vo.OrderImportVo;
+import io.renren.modules.sys.vo.StatisticsVo;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang.RandomStringUtils;
@@ -240,5 +248,56 @@ public class SysOrderDetailServiceImpl extends ServiceImpl<OrderDetailDao, Order
 			}).collect(Collectors.toList());
 			this.saveBatch(saveOrderList);
 		}
+	}
+
+
+	@Override
+	public StatisticsVo statisticsOrder(String statisticsObject) {
+		StatisticsObject so = StatisticsObject.of(statisticsObject);
+		//查询指定日期内所有的单子
+		List<OrderDetailEntity> orderList = this.list(new QueryWrapper<OrderDetailEntity>()
+				.gt("book_time", DateUtil.getMonthStartTimeByDate(new Date()))
+		);
+		if (CollectionUtils.isEmpty(orderList)) {
+			return new StatisticsVo();
+		}
+
+		//进行统计
+		//1、聚合,按照厂商销售、按照佳杰销售、按照代理商销售分别聚合
+
+		Map<String, List<OrderDetailEntity>> groupedOrder;
+		switch (so) {
+			case BOOK_USER:
+				groupedOrder = orderList.stream().collect(Collectors.groupingBy(OrderDetailEntity::getBookUserPhone));
+
+				break;
+			case CUSTOMER_MANAGER:
+				groupedOrder = orderList.stream().collect(Collectors.groupingBy(OrderDetailEntity::getCustomerManagerPhone));
+				break;
+			case AGENT:
+				groupedOrder = orderList.stream().collect(Collectors.groupingBy(OrderDetailEntity::getAgentPhone));
+				break;
+			default:
+				groupedOrder = Maps.newHashMap();
+		}
+		List<CountTempVo> countTempVoList = groupedOrder.entrySet().stream().map(entry -> {
+			CountTempVo vo = new CountTempVo();
+			vo.setOrderCount(entry.getValue().size());
+			//获取用户信息，用来填充
+			SysUserEntity sysUser = sysUserService.queryByMobile(entry.getKey());
+			if (Objects.isNull(sysUser)) {
+				return null;
+			}
+			vo.setSysUser(sysUser);
+			List<OrderDetailEntity> orders = entry.getValue();
+			vo.setOrderTotalAmount(orders.stream().map(OrderDetailEntity::getAmount).reduce(BigDecimal.ZERO, BigDecimal::add));
+			vo.setOrderAvgAmount(orders.stream().map(OrderDetailEntity::getAmount).reduce(BigDecimal.ZERO, BigDecimal::add).divide(new BigDecimal(orders.size()), 2, RoundingMode.HALF_UP));
+			return vo;
+		}).filter(Objects::nonNull).sorted(Comparator.comparing(CountTempVo::getOrderTotalAmount).reversed()).collect(Collectors.toList());
+
+		StatisticsVo statisticsVo = new StatisticsVo();
+		statisticsVo.setXCoordinates(countTempVoList.stream().map(x -> x.getSysUser().getUsername()).collect(Collectors.toList()));
+		statisticsVo.setYCoordinates(countTempVoList.stream().map(x -> x.getOrderTotalAmount().toString()).collect(Collectors.toList()));
+		return statisticsVo;
 	}
 }
