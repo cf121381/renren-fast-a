@@ -114,3 +114,8 @@ renren:
 mp:
   secret: 63dbf2906ceab74a196083a58d93abcc
   appId: wxc3674368673882a5
+sms:
+  secretId: AKIDBD1cy60Uu9C4jCRUOEuQnFblW2LTM1Rd
+  secretKey: 1pQnw86rOhlaBXeXCdBWdWAamocDbpqi
+  sdkAppId: 1400818504
+  templateId: 1787703

@@ -11,6 +11,7 @@ import io.renren.modules.app.wx.MiniprogramHelper;
 import io.renren.modules.app.wx.UserCredentialVo;
 import io.renren.modules.app.wx.UserVo;
 import io.renren.modules.app.wx.WechatIntegrationException;
+import io.renren.modules.tencent.exception.TencentCloudSDKException;
 import io.swagger.annotations.Api;
 import org.apache.commons.lang.StringUtils;
 
@@ -50,10 +51,10 @@ public class WeiXinLoginController {
 	}
 
 	@GetMapping("/sendMsg")
-	public R sendMsg(@RequestParam("openId") String openId, @RequestParam("token") String token, @RequestParam("phone") String phone) {
-//		String token = getToken();
+	public R sendMsg(@RequestParam("openId") String openId, @RequestParam("token") String token, @RequestParam("phone") String phone) throws TencentCloudSDKException {
 		String code = miniprogramHelper.sendMsg(openId, token, phone);
-		return R.ok().put("smsCode", code);
+//		return R.ok().put("smsCode", code);
+		return R.ok();
 	}
 
 	@PostMapping("save_userInfo")
@@ -64,8 +65,8 @@ public class WeiXinLoginController {
 
 	@WxSysLog("user_login_query")
 	@GetMapping("/get_user_info")
-	public R getUserInfo(@RequestParam("token")String token,@RequestParam("openId")String openId){
-		UserVo vo = miniprogramHelper.getUserInfo(openId,token);
+	public R getUserInfo(@RequestParam("token") String token, @RequestParam("openId") String openId) {
+		UserVo vo = miniprogramHelper.getUserInfo(openId, token);
 		return R.ok().put("data", vo);
 	}
 

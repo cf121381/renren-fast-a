@@ -7,6 +7,7 @@ import java.util.Random;
 
 import javax.annotation.Resource;
 
+import cn.hutool.core.util.NumberUtil;
 import cn.hutool.http.HttpRequest;
 import cn.hutool.http.HttpResponse;
 import cn.hutool.http.HttpUtil;
@@ -22,7 +23,10 @@ import io.renren.modules.app.utils.JwtUtils;
 import io.renren.modules.sys.entity.SysUserEntity;
 import io.renren.modules.sys.service.SysUserRoleService;
 import io.renren.modules.sys.service.SysUserService;
+import io.renren.modules.tencent.SmsService;
+import io.renren.modules.tencent.exception.TencentCloudSDKException;
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang.math.NumberUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -42,6 +46,8 @@ public class MiniprogramHelper {
 
 	private static final String msgMpTmpKey = "mpTemplateMsg";
 
+	private static final Map<String, String> phoneCodeMap = Maps.newConcurrentMap();
+
 	@Resource
 	private WechatConfig wechatConfig;
 
@@ -56,6 +62,9 @@ public class MiniprogramHelper {
 
 	@Resource
 	private JwtUtils jwtUtils;
+
+	@Resource
+	private SmsService smsService;
 
 	public UserCredentialVo login(String jsCode) throws WechatIntegrationException {
 		String appId = wechatConfig.getAppId();
@@ -106,7 +115,7 @@ public class MiniprogramHelper {
 		return roleIdList;
 	}
 
-	private static final Map<String, String> phoneCodeMap = Maps.newHashMap();
+	private static final Map<String, Integer> checkCountCache = Maps.newConcurrentMap();
 
 	public UserVo saveUserInfo(SaveUserInfoForm form) {
 		UserEntity user = userService.queryByOpenId(form.getOpenId());
@@ -114,11 +123,20 @@ public class MiniprogramHelper {
 			throw new RRException("请先登录，再保存用户信息");
 		}
 		String key = form.getPhone() + form.getOpenId() + form.getToken();
+		if (checkCountCache.containsKey(key)) {
+			checkCountCache.put(key, checkCountCache.get(key) + 1);
+		}
+		else {
+			checkCountCache.put(key, NumberUtils.INTEGER_ONE);
+		}
 		if (!phoneCodeMap.containsKey(key)) {
+			clearCache(key);
 			throw new RRException("验证码过期或者失效,请先发送验证码");
 		}
 		if (!phoneCodeMap.get(key).equals(form.getCode())) {
-//			phoneCodeMap.remove(key);
+			if (checkCountCache.get(key) >= 3) {
+				clearCache(key);
+			}
 			throw new RRException("验证码错误,请重新获取验证码");
 		}
 		user.setUsername(form.getPhone());
@@ -130,19 +148,25 @@ public class MiniprogramHelper {
 		vo.setPhone(form.getPhone());
 		vo.setOpenId(form.getOpenId());
 		vo.setRoleIdList(getRoleIdListByPhone(form.getPhone()));
+		clearCache(key);
 		return vo;
 	}
 
-	public UserVo getUserInfo(String openId , String token){
-		if(StringUtils.isEmpty(openId)){
+	private void clearCache(String key) {
+		checkCountCache.remove(key);
+		phoneCodeMap.remove(key);
+	}
+
+	public UserVo getUserInfo(String openId, String token) {
+		if (StringUtils.isEmpty(openId)) {
 			throw new RRException("用户未登录，请先登录");
 		}
 		UserEntity user = userService.queryByOpenId(openId);
-		if(Objects.isNull(user)){
+		if (Objects.isNull(user)) {
 			throw new RRException("用户未登录，请先登录");
 		}
-		Claims claims =jwtUtils.getClaimByToken(token);
-		if(claims == null || jwtUtils.isTokenExpired(claims.getExpiration())){
+		Claims claims = jwtUtils.getClaimByToken(token);
+		if (claims == null || jwtUtils.isTokenExpired(claims.getExpiration())) {
 			throw new RRException(jwtUtils.getHeader() + "失效，请重新登录", HttpStatus.UNAUTHORIZED.value());
 		}
 		UserVo vo = new UserVo();
@@ -154,12 +178,12 @@ public class MiniprogramHelper {
 		return vo;
 	}
 
-	public UserVo getUserInfo(String openId){
-		if(StringUtils.isEmpty(openId)){
+	public UserVo getUserInfo(String openId) {
+		if (StringUtils.isEmpty(openId)) {
 			throw new RRException("用户未登录，请先登录");
 		}
 		UserEntity user = userService.queryByOpenId(openId);
-		if(Objects.isNull(user)){
+		if (Objects.isNull(user)) {
 			throw new RRException("用户未登录，请先登录");
 		}
 		UserVo vo = new UserVo();
@@ -170,10 +194,13 @@ public class MiniprogramHelper {
 		return vo;
 	}
 
-	public String sendMsg(String openId, String token, String phone) {
+	public String sendMsg(String openId, String token, String phone) throws TencentCloudSDKException {
 		String code = generateCode(6);
-		phoneCodeMap.put(phone + openId + token, code);
-		return code;
+		String key = phone + openId + token;
+		phoneCodeMap.put(key, code);
+		checkCountCache.put(key, NumberUtils.INTEGER_ZERO);
+		smsService.sendSMS(phone, code);
+		return null;
 	}
 
 	private static String generateCode(int length) {
