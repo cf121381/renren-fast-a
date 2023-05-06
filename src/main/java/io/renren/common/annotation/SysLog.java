@@ -14,6 +14,8 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
+import io.renren.common.constants.LogFromType;
+
 /**
  * 系统日志注解
  *

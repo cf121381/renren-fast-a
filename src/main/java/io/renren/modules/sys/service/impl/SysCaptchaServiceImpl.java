@@ -23,6 +23,7 @@ import org.springframework.stereotype.Service;
 
 import java.awt.image.BufferedImage;
 import java.util.Date;
+import java.util.Objects;
 
 /**
  * 验证码
@@ -41,8 +42,10 @@ public class SysCaptchaServiceImpl extends ServiceImpl<SysCaptchaDao, SysCaptcha
         }
         //生成文字验证码
         String code = producer.createText();
-
-        SysCaptchaEntity captchaEntity = new SysCaptchaEntity();
+        SysCaptchaEntity captchaEntity = this.getOne(new QueryWrapper<SysCaptchaEntity>().eq("uuid", uuid));
+        if (Objects.isNull(captchaEntity)) {
+            captchaEntity = new SysCaptchaEntity();
+        }
         captchaEntity.setUuid(uuid);
         captchaEntity.setCode(code);
         //5分钟后过期

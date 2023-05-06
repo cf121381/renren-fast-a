@@ -41,4 +41,9 @@ public class UserServiceImpl extends ServiceImpl<UserDao, UserEntity> implements
 
 		return user.getUserId();
 	}
+
+	@Override
+	public UserEntity queryByOpenId(String openId) {
+		return baseMapper.selectOne(new QueryWrapper<UserEntity>().eq("open_id", openId));
+	}
 }

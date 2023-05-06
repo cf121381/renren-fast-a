@@ -21,7 +21,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.Map;
 
-@Service("scheduleJobLogService")
+//@Service("scheduleJobLogService")
 public class ScheduleJobLogServiceImpl extends ServiceImpl<ScheduleJobLogDao, ScheduleJobLogEntity> implements ScheduleJobLogService {
 
 	@Override

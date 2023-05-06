@@ -39,6 +39,8 @@ public class SysLogEntity implements Serializable {
 	private Long time;
 	//IP地址
 	private String ip;
+	//日志来源 @see io.renren.common.constants.LogFromType
+	private int fromType;
 	//创建时间
 	private Date createDate;
 

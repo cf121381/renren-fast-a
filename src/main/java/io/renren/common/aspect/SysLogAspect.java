@@ -10,6 +10,7 @@ package io.renren.common.aspect;
 
 import com.google.gson.Gson;
 import io.renren.common.annotation.SysLog;
+import io.renren.common.constants.LogFromType;
 import io.renren.common.utils.HttpContextUtils;
 import io.renren.common.utils.IPUtils;
 import io.renren.modules.sys.entity.SysLogEntity;
@@ -21,10 +22,12 @@ import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.annotation.Pointcut;
 import org.aspectj.lang.reflect.MethodSignature;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import javax.servlet.http.HttpServletRequest;
+
 import java.lang.reflect.Method;
 import java.util.Date;
 
@@ -39,10 +42,10 @@ import java.util.Date;
 public class SysLogAspect {
 	@Autowired
 	private SysLogService sysLogService;
-	
+
 	@Pointcut("@annotation(io.renren.common.annotation.SysLog)")
-	public void logPointCut() { 
-		
+	public void logPointCut() {
+
 	}
 
 	@Around("logPointCut()")
@@ -64,11 +67,12 @@ public class SysLogAspect {
 		Method method = signature.getMethod();
 
 		SysLogEntity sysLog = new SysLogEntity();
-		SysLog syslog = method.getAnnotation(SysLog.class);
-		if(syslog != null){
+		SysLog annotationEntity = method.getAnnotation(SysLog.class);
+		if (annotationEntity != null) {
 			//注解上的描述
-			sysLog.setOperation(syslog.value());
+			sysLog.setOperation(annotationEntity.value());
 		}
+		sysLog.setFromType(LogFromType.ADMIN);
 
 		//请求的方法名
 		String className = joinPoint.getTarget().getClass().getName();
@@ -77,10 +81,11 @@ public class SysLogAspect {
 
 		//请求的参数
 		Object[] args = joinPoint.getArgs();
-		try{
+		try {
 			String params = new Gson().toJson(args);
 			sysLog.setParams(params);
-		}catch (Exception e){
+		}
+		catch (Exception e) {
 
 		}
 

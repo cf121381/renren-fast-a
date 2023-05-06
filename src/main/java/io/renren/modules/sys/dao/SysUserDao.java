@@ -8,11 +8,12 @@
 
 package io.renren.modules.sys.dao;
 
+import java.util.List;
+
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import io.renren.modules.sys.entity.SysUserEntity;
 import org.apache.ibatis.annotations.Mapper;
-
-import java.util.List;
+import org.apache.ibatis.annotations.Param;
 
 /**
  * 系统用户
@@ -21,21 +22,23 @@ import java.util.List;
  */
 @Mapper
 public interface SysUserDao extends BaseMapper<SysUserEntity> {
-	
+
 	/**
 	 * 查询用户的所有权限
 	 * @param userId  用户ID
 	 */
 	List<String> queryAllPerms(Long userId);
-	
+
 	/**
 	 * 查询用户的所有菜单ID
 	 */
 	List<Long> queryAllMenuId(Long userId);
-	
+
 	/**
 	 * 根据用户名，查询系统用户
 	 */
 	SysUserEntity queryByUserName(String username);
+
+	List<SysUserEntity> queryByMobileList(@Param("list") List<String> list);
 
 }
