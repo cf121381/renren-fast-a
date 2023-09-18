@@ -32,9 +32,9 @@ import java.util.Map;
 public class ShiroConfig {
 
     @Bean("securityManager")
-    public SecurityManager securityManager(JWTRealm oAuth2Realm) {
+    public SecurityManager securityManager(JWTRealm jwtRealm) {
         DefaultWebSecurityManager securityManager = new DefaultWebSecurityManager();
-        securityManager.setRealm(oAuth2Realm);
+        securityManager.setRealm(jwtRealm);
         securityManager.setRememberMeManager(null);
         return securityManager;
     }
@@ -44,7 +44,7 @@ public class ShiroConfig {
         ShiroFilterFactoryBean shiroFilter = new ShiroFilterFactoryBean();
         shiroFilter.setSecurityManager(securityManager);
 
-        //oauth过滤
+        //jwt token过滤
         Map<String, Filter> filters = new HashMap<>();
         filters.put("jwt", new JWTFilter());
         shiroFilter.setFilters(filters);

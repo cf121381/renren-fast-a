@@ -25,7 +25,7 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
 /**
- * oauth2过滤器
+ * jwt token过滤器
  *
  * @author Mark sunlightcs@gmail.com
  */
