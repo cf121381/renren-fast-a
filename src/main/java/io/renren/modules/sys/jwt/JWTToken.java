@@ -6,7 +6,7 @@
  * 版权所有，侵权必究！
  */
 
-package io.renren.modules.sys.oauth2;
+package io.renren.modules.sys.jwt;
 
 
 import org.apache.shiro.authc.AuthenticationToken;
@@ -16,10 +16,10 @@ import org.apache.shiro.authc.AuthenticationToken;
  *
  * @author Mark sunlightcs@gmail.com
  */
-public class OAuth2Token implements AuthenticationToken {
+public class JWTToken implements AuthenticationToken {
     private String token;
 
-    public OAuth2Token(String token){
+    public JWTToken(String token){
         this.token = token;
     }
 

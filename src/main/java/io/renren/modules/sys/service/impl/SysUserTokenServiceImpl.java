@@ -12,7 +12,7 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import io.renren.common.utils.R;
 import io.renren.modules.sys.dao.SysUserTokenDao;
 import io.renren.modules.sys.entity.SysUserTokenEntity;
-import io.renren.modules.sys.oauth2.TokenGenerator;
+import io.renren.modules.sys.jwt.TokenGenerator;
 import io.renren.modules.sys.service.SysUserTokenService;
 import org.springframework.stereotype.Service;
 
